@@ -94,9 +94,23 @@ async function handleDownloadUpdate() {
     }
   } catch (error) {
     console.error('[AboutView] 下载更新失败:', error);
-    updateError.value = `下载失败: ${error}`;
+    updateError.value = `自动下载失败，请尝试手动下载`;
   } finally {
     isDownloading.value = false;
+  }
+}
+
+// 手动下载
+async function handleManualDownload() {
+  console.log('[AboutView] 打开手动下载链接');
+  if (updateInfo.value?.download_url) {
+    try {
+      await openUrl(updateInfo.value.download_url);
+      console.log('[AboutView] 已打开下载页面');
+    } catch (error) {
+      console.error('[AboutView] 打开链接失败:', error);
+      alert(`打开链接失败: ${error}`);
+    }
   }
 }
 
@@ -241,15 +255,16 @@ console.log('[AboutView] 脚本执行完成');
                 <div class="notes-title">更新内容:</div>
                 <div class="notes-content">{{ updateInfo.release_notes }}</div>
               </div>
-              <SLButton
-                variant="primary"
-                size="sm"
-                @click="handleDownloadUpdate"
-                :disabled="isDownloading"
-                style="width: 100%; margin-top: 8px"
-              >
-                {{ isDownloading ? `下载中... ${downloadProgressText}` : '下载并安装' }}
-              </SLButton>
+              <div class="update-buttons">
+                <SLButton
+                  variant="primary"
+                  size="sm"
+                  @click="handleManualDownload"
+                  style="width: 100%"
+                >
+                  前往下载页面
+                </SLButton>
+              </div>
             </div>
             <div v-else class="update-latest">
               <div class="update-icon">
@@ -768,6 +783,12 @@ console.log('[AboutView] 脚本执行完成');
   max-height: 120px;
   overflow-y: auto;
   white-space: pre-wrap;
+}
+
+.update-buttons {
+  display: flex;
+  gap: var(--sl-space-sm);
+  margin-top: var(--sl-space-sm);
 }
 
 .update-latest {
