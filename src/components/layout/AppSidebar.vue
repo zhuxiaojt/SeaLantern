@@ -15,14 +15,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: "home", path: "/", icon: "home", label: "首页", group: "main" },
-  { name: "create", path: "/create", icon: "plus", label: "创建服务器", group: "main" },
-  { name: "console", path: "/console", icon: "terminal", label: "控制台", group: "server" },
-  { name: "config", path: "/config", icon: "settings", label: "配置编辑", group: "server" },
-  { name: "players", path: "/players", icon: "users", label: "玩家管理", group: "server" },
-  { name: "settings", path: "/settings", icon: "sliders", label: "设置", group: "system" },
-  { name: "paint", path: "/paint", icon: "paint", label: "个性化", group: "system" },
-  { name: "about", path: "/about", icon: "info", label: "关于", group: "system" },
+  { name: "home", path: "/", icon: "home", labelKey: "common.home", group: "main" },
+  { name: "create", path: "/create", icon: "plus", labelKey: "common.create_server", group: "main" },
+  { name: "console", path: "/console", icon: "terminal", labelKey: "common.console", group: "server" },
+  { name: "config", path: "/config", icon: "settings", labelKey: "common.config_edit", group: "server" },
+  { name: "players", path: "/players", icon: "users", labelKey: "common.player_manage", group: "server" },
+  { name: "settings", path: "/settings", icon: "sliders", labelKey: "common.settings", group: "system" },
+  { name: "paint", path: "/paint", icon: "paint", labelKey: "common.personalize", group: "system" },
+  { name: "about", path: "/about", icon: "info", labelKey: "common.about", group: "system" },
 ];
 
 const groups = [
