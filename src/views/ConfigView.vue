@@ -142,7 +142,7 @@ function getServerName(): string {
     </div>
 
     <div v-if="!selectedServerId" class="empty-state">
-      <p class="text-body">{{ i18n.t('config.no_server') }}</p>
+      <p class="text-body">{{ i18n.t("config.no_server") }}</p>
     </div>
 
     <template v-else>
@@ -151,7 +151,7 @@ function getServerName(): string {
         <button class="banner-close" @click="error = null">x</button>
       </div>
       <div v-if="successMsg" class="success-banner">
-        <span>{{ i18n.t('config.saved') }}</span>
+        <span>{{ i18n.t("config.saved") }}</span>
       </div>
 
       <div class="config-toolbar">
@@ -159,20 +159,30 @@ function getServerName(): string {
           <SLInput :placeholder="i18n.t('config.search')" v-model="searchQuery" />
         </div>
         <div class="toolbar-right">
-          <SLButton variant="secondary" size="sm" @click="loadProperties">{{ i18n.t('config.reload') }}</SLButton>
-          <SLButton variant="primary" size="sm" :loading="saving" @click="saveProperties">{{ i18n.t('config.save') }}</SLButton>
+          <SLButton variant="secondary" size="sm" @click="loadProperties">{{
+            i18n.t("config.reload")
+          }}</SLButton>
+          <SLButton variant="primary" size="sm" :loading="saving" @click="saveProperties">{{
+            i18n.t("config.save")
+          }}</SLButton>
         </div>
       </div>
 
       <div class="category-tabs">
-        <button v-for="cat in categories" :key="cat" class="category-tab" :class="{ active: activeCategory === cat }" @click="activeCategory = cat">
+        <button
+          v-for="cat in categories"
+          :key="cat"
+          class="category-tab"
+          :class="{ active: activeCategory === cat }"
+          @click="activeCategory = cat"
+        >
           {{ i18n.t(`config.categories.${cat}`) || cat }}
         </button>
       </div>
 
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
-        <span>{{ i18n.t('config.loading') }}</span>
+        <span>{{ i18n.t("config.loading") }}</span>
       </div>
 
       <div v-else class="config-entries">
@@ -180,19 +190,52 @@ function getServerName(): string {
           <div class="entry-header">
             <div class="entry-key-row">
               <span class="entry-key text-mono">{{ entry.key }}</span>
-              <SLBadge :text="i18n.t(`config.categories.${entry.category}`) || entry.category" variant="neutral" />
+              <SLBadge
+                :text="i18n.t(`config.categories.${entry.category}`) || entry.category"
+                variant="neutral"
+              />
             </div>
             <p v-if="entry.description" class="entry-desc text-caption">{{ entry.description }}</p>
           </div>
           <div class="entry-control">
-            <SLSwitch v-if="entry.value_type === 'boolean'" :modelValue="getBoolValue(entry.key)" @update:modelValue="updateValue(entry.key, $event)" />
-            <SLSelect v-else-if="entry.key === 'gamemode'" :modelValue="editValues[entry.key]" :options="[{label:i18n.t('config.gamemode.survival'),value:'survival'},{label:i18n.t('config.gamemode.creative'),value:'creative'},{label:i18n.t('config.gamemode.adventure'),value:'adventure'},{label:i18n.t('config.gamemode.spectator'),value:'spectator'}]" @update:modelValue="updateValue(entry.key, $event as string)" />
-            <SLSelect v-else-if="entry.key === 'difficulty'" :modelValue="editValues[entry.key]" :options="[{label:i18n.t('config.difficulty.peaceful'),value:'peaceful'},{label:i18n.t('config.difficulty.easy'),value:'easy'},{label:i18n.t('config.difficulty.normal'),value:'normal'},{label:i18n.t('config.difficulty.hard'),value:'hard'}]" @update:modelValue="updateValue(entry.key, $event as string)" />
-            <SLInput v-else :modelValue="editValues[entry.key]" :type="entry.value_type === 'number' ? 'number' : 'text'" :placeholder="entry.default_value" @update:modelValue="updateValue(entry.key, $event)" />
+            <SLSwitch
+              v-if="entry.value_type === 'boolean'"
+              :modelValue="getBoolValue(entry.key)"
+              @update:modelValue="updateValue(entry.key, $event)"
+            />
+            <SLSelect
+              v-else-if="entry.key === 'gamemode'"
+              :modelValue="editValues[entry.key]"
+              :options="[
+                { label: i18n.t('config.gamemode.survival'), value: 'survival' },
+                { label: i18n.t('config.gamemode.creative'), value: 'creative' },
+                { label: i18n.t('config.gamemode.adventure'), value: 'adventure' },
+                { label: i18n.t('config.gamemode.spectator'), value: 'spectator' },
+              ]"
+              @update:modelValue="updateValue(entry.key, $event as string)"
+            />
+            <SLSelect
+              v-else-if="entry.key === 'difficulty'"
+              :modelValue="editValues[entry.key]"
+              :options="[
+                { label: i18n.t('config.difficulty.peaceful'), value: 'peaceful' },
+                { label: i18n.t('config.difficulty.easy'), value: 'easy' },
+                { label: i18n.t('config.difficulty.normal'), value: 'normal' },
+                { label: i18n.t('config.difficulty.hard'), value: 'hard' },
+              ]"
+              @update:modelValue="updateValue(entry.key, $event as string)"
+            />
+            <SLInput
+              v-else
+              :modelValue="editValues[entry.key]"
+              :type="entry.value_type === 'number' ? 'number' : 'text'"
+              :placeholder="entry.default_value"
+              @update:modelValue="updateValue(entry.key, $event)"
+            />
           </div>
         </div>
         <div v-if="filteredEntries.length === 0 && !loading" class="empty-state">
-          <p class="text-caption">{{ i18n.t('config.no_config') }}</p>
+          <p class="text-caption">{{ i18n.t("config.no_config") }}</p>
         </div>
       </div>
     </template>

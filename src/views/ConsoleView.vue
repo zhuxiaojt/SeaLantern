@@ -350,10 +350,15 @@ function handleClearLogs() {
     <div class="console-toolbar">
       <div class="toolbar-left">
         <div v-if="serverOptions.length > 0" class="server-selector">
-          <SLSelect :options="serverOptions" :modelValue="serverId" :placeholder="i18n.t('common.console')" @update:modelValue="switchServer" />
+          <SLSelect
+            :options="serverOptions"
+            :modelValue="serverId"
+            :placeholder="i18n.t('common.console')"
+            @update:modelValue="switchServer"
+          />
         </div>
         <div v-else class="server-name-display">
-          {{ i18n.t('home.no_servers') }}
+          {{ i18n.t("home.no_servers") }}
         </div>
         <div v-if="serverId" class="status-indicator" :class="getStatusClass()">
           <span class="status-dot"></span>
@@ -361,14 +366,34 @@ function handleClearLogs() {
         </div>
       </div>
       <div class="toolbar-right">
-        <SLButton variant="primary" size="sm" :loading="startLoading" :disabled="isRunning || startLoading" @click="handleStart">{{ i18n.t('home.start') }}</SLButton>
-        <SLButton variant="danger" size="sm" :loading="stopLoading" :disabled="isStopped || stopLoading" @click="handleStop">{{ i18n.t('home.stop') }}</SLButton>
-        <SLButton variant="secondary" size="sm" @click="exportLogs">{{ i18n.t('console.copy_log') }}</SLButton>
-        <SLButton variant="ghost" size="sm" @click="handleClearLogs">{{ i18n.t('console.clear_log') }}</SLButton>
+        <SLButton
+          variant="primary"
+          size="sm"
+          :loading="startLoading"
+          :disabled="isRunning || startLoading"
+          @click="handleStart"
+          >{{ i18n.t("home.start") }}</SLButton
+        >
+        <SLButton
+          variant="danger"
+          size="sm"
+          :loading="stopLoading"
+          :disabled="isStopped || stopLoading"
+          @click="handleStop"
+          >{{ i18n.t("home.stop") }}</SLButton
+        >
+        <SLButton variant="secondary" size="sm" @click="exportLogs">{{
+          i18n.t("console.copy_log")
+        }}</SLButton>
+        <SLButton variant="ghost" size="sm" @click="handleClearLogs">{{
+          i18n.t("console.clear_log")
+        }}</SLButton>
       </div>
     </div>
 
-    <div v-if="!serverId" class="no-server"><p class="text-body">{{ i18n.t('home.no_servers') }}</p></div>
+    <div v-if="!serverId" class="no-server">
+      <p class="text-body">{{ i18n.t("home.no_servers") }}</p>
+    </div>
 
     <template v-else>
       <div class="quick-commands">
@@ -438,8 +463,16 @@ function handleClearLogs() {
         </div>
         <div class="console-input-bar">
           <span class="input-prefix">&gt;</span>
-          <input class="console-input" v-model="commandInput" placeholder="输入命令... (Tab 补全)" @keydown="handleKeydown" :style="{ fontSize: consoleFontSize + 'px' }" />
-          <SLButton variant="primary" size="sm" @click="sendCommand()">{{ i18n.t('console.send_command') }}</SLButton>
+          <input
+            class="console-input"
+            v-model="commandInput"
+            placeholder="输入命令... (Tab 补全)"
+            @keydown="handleKeydown"
+            :style="{ fontSize: consoleFontSize + 'px' }"
+          />
+          <SLButton variant="primary" size="sm" @click="sendCommand()">{{
+            i18n.t("console.send_command")
+          }}</SLButton>
         </div>
       </div>
     </template>

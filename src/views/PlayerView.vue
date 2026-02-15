@@ -246,10 +246,14 @@ async function handleKick(name: string) {
 
 function getAddLabel(): string {
   switch (activeTab.value) {
-    case "whitelist": return i18n.t('players.add');
-    case "banned": return i18n.t('players.ban_player');
-    case "ops": return i18n.t('players.add_op');
-    default: return i18n.t('players.add');
+    case "whitelist":
+      return i18n.t("players.add");
+    case "banned":
+      return i18n.t("players.ban_player");
+    case "ops":
+      return i18n.t("players.add_op");
+    default:
+      return i18n.t("players.add");
   }
 }
 </script>
@@ -258,15 +262,27 @@ function getAddLabel(): string {
   <div class="player-view animate-fade-in-up">
     <div class="player-header">
       <div class="server-picker">
-        <SLSelect :label="i18n.t('common.player_manage')" :options="serverOptions" v-model="selectedServerId" :placeholder="i18n.t('players.select_server')" />
+        <SLSelect
+          :label="i18n.t('common.player_manage')"
+          :options="serverOptions"
+          v-model="selectedServerId"
+          :placeholder="i18n.t('players.select_server')"
+        />
       </div>
       <div v-if="selectedServerId" class="server-status">
-        <SLBadge :text="isRunning ? i18n.t('home.running') : i18n.t('home.stopped')" :variant="isRunning ? 'success' : 'neutral'" />
-        <span v-if="!isRunning" class="status-hint text-caption">{{ i18n.t('players.server_not_running') }}</span>
+        <SLBadge
+          :text="isRunning ? i18n.t('home.running') : i18n.t('home.stopped')"
+          :variant="isRunning ? 'success' : 'neutral'"
+        />
+        <span v-if="!isRunning" class="status-hint text-caption">{{
+          i18n.t("players.server_not_running")
+        }}</span>
       </div>
     </div>
 
-    <div v-if="!selectedServerId" class="empty-state"><p class="text-body">{{ i18n.t('players.no_server') }}</p></div>
+    <div v-if="!selectedServerId" class="empty-state">
+      <p class="text-body">{{ i18n.t("players.no_server") }}</p>
+    </div>
 
     <template v-else>
       <div v-if="error" class="msg-banner error-banner">
@@ -278,31 +294,55 @@ function getAddLabel(): string {
       </div>
 
       <div class="tab-bar">
-        <button class="tab-btn" :class="{ active: activeTab === 'online' }" @click="activeTab = 'online'">
-          {{ i18n.t('players.online_players') }} <span class="tab-count">{{ onlinePlayers.length }}</span>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'online' }"
+          @click="activeTab = 'online'"
+        >
+          {{ i18n.t("players.online_players") }}
+          <span class="tab-count">{{ onlinePlayers.length }}</span>
         </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'whitelist' }" @click="activeTab = 'whitelist'">
-          {{ i18n.t('players.whitelist') }} <span class="tab-count">{{ whitelist.length }}</span>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'whitelist' }"
+          @click="activeTab = 'whitelist'"
+        >
+          {{ i18n.t("players.whitelist") }} <span class="tab-count">{{ whitelist.length }}</span>
         </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'banned' }" @click="activeTab = 'banned'">
-          {{ i18n.t('players.banned') }} <span class="tab-count">{{ bannedPlayers.length }}</span>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'banned' }"
+          @click="activeTab = 'banned'"
+        >
+          {{ i18n.t("players.banned") }} <span class="tab-count">{{ bannedPlayers.length }}</span>
         </button>
         <button class="tab-btn" :class="{ active: activeTab === 'ops' }" @click="activeTab = 'ops'">
-          {{ i18n.t('players.ops') }} <span class="tab-count">{{ ops.length }}</span>
+          {{ i18n.t("players.ops") }} <span class="tab-count">{{ ops.length }}</span>
         </button>
       </div>
 
       <div v-if="activeTab !== 'online'" class="action-bar">
-        <SLButton variant="primary" size="sm" :disabled="!isRunning" @click="openAddModal">{{ getAddLabel() }}</SLButton>
-        <SLButton variant="ghost" size="sm" @click="loadAll">{{ i18n.t('config.reload') }}</SLButton>
+        <SLButton variant="primary" size="sm" :disabled="!isRunning" @click="openAddModal">{{
+          getAddLabel()
+        }}</SLButton>
+        <SLButton variant="ghost" size="sm" @click="loadAll">{{
+          i18n.t("config.reload")
+        }}</SLButton>
       </div>
 
-      <div v-if="loading" class="loading-state"><div class="spinner"></div><span>{{ i18n.t('config.loading') }}</span></div>
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <span>{{ i18n.t("config.loading") }}</span>
+      </div>
 
       <!-- Online Tab -->
       <div v-else-if="activeTab === 'online'" class="player-list">
-        <div v-if="!isRunning" class="empty-list"><p class="text-caption">{{ i18n.t('players.server_offline') }}</p></div>
-        <div v-else-if="onlinePlayers.length === 0" class="empty-list"><p class="text-caption">{{ i18n.t('players.no_players') }}</p></div>
+        <div v-if="!isRunning" class="empty-list">
+          <p class="text-caption">{{ i18n.t("players.server_offline") }}</p>
+        </div>
+        <div v-else-if="onlinePlayers.length === 0" class="empty-list">
+          <p class="text-caption">{{ i18n.t("players.no_players") }}</p>
+        </div>
         <div v-for="name in onlinePlayers" :key="name" class="player-item glass-card">
           <div class="player-avatar">
             <img
@@ -316,14 +356,18 @@ function getAddLabel(): string {
             <SLBadge :text="i18n.t('home.running')" variant="success" />
           </div>
           <div class="player-actions">
-            <SLButton variant="ghost" size="sm" @click="handleKick(name)">{{ i18n.t('players.kick') }}</SLButton>
+            <SLButton variant="ghost" size="sm" @click="handleKick(name)">{{
+              i18n.t("players.kick")
+            }}</SLButton>
           </div>
         </div>
       </div>
 
       <!-- Whitelist Tab -->
       <div v-else-if="activeTab === 'whitelist'" class="player-list">
-        <div v-if="whitelist.length === 0" class="empty-list"><p class="text-caption">{{ i18n.t('players.empty_whitelist') }}</p></div>
+        <div v-if="whitelist.length === 0" class="empty-list">
+          <p class="text-caption">{{ i18n.t("players.empty_whitelist") }}</p>
+        </div>
         <div v-for="p in whitelist" :key="p.name" class="player-item glass-card">
           <div class="player-avatar">
             <img :src="'https://mc-heads.net/avatar/' + p.name + '/32'" class="avatar-img" />
@@ -333,43 +377,67 @@ function getAddLabel(): string {
             <span class="player-uuid text-mono text-caption">{{ p.uuid }}</span>
           </div>
           <div class="player-actions">
-            <SLButton variant="ghost" size="sm" :disabled="!isRunning" @click="handleRemoveWhitelist(p.name)">{{ i18n.t('players.remove') }}</SLButton>
+            <SLButton
+              variant="ghost"
+              size="sm"
+              :disabled="!isRunning"
+              @click="handleRemoveWhitelist(p.name)"
+              >{{ i18n.t("players.remove") }}</SLButton
+            >
           </div>
         </div>
       </div>
 
       <!-- Banned Tab -->
       <div v-else-if="activeTab === 'banned'" class="player-list">
-        <div v-if="bannedPlayers.length === 0" class="empty-list"><p class="text-caption">{{ i18n.t('players.empty_banned') }}</p></div>
+        <div v-if="bannedPlayers.length === 0" class="empty-list">
+          <p class="text-caption">{{ i18n.t("players.empty_banned") }}</p>
+        </div>
         <div v-for="p in bannedPlayers" :key="p.name" class="player-item glass-card">
           <div class="player-avatar">
             <img :src="'https://mc-heads.net/avatar/' + p.name + '/32'" class="avatar-img" />
           </div>
           <div class="player-info">
             <span class="player-name">{{ p.name }}</span>
-            <span class="text-caption">{{ i18n.t('players.ban_reason') }}: {{ p.reason || i18n.t('players.empty') }}</span>
+            <span class="text-caption"
+              >{{ i18n.t("players.ban_reason") }}: {{ p.reason || i18n.t("players.empty") }}</span
+            >
           </div>
           <SLBadge :text="i18n.t('players.ban')" variant="error" />
           <div class="player-actions">
-            <SLButton variant="ghost" size="sm" :disabled="!isRunning" @click="handleUnban(p.name)">{{ i18n.t('players.unban') }}</SLButton>
+            <SLButton
+              variant="ghost"
+              size="sm"
+              :disabled="!isRunning"
+              @click="handleUnban(p.name)"
+              >{{ i18n.t("players.unban") }}</SLButton
+            >
           </div>
         </div>
       </div>
 
       <!-- OPs Tab -->
       <div v-else-if="activeTab === 'ops'" class="player-list">
-        <div v-if="ops.length === 0" class="empty-list"><p class="text-caption">{{ i18n.t('players.empty_ops') }}</p></div>
+        <div v-if="ops.length === 0" class="empty-list">
+          <p class="text-caption">{{ i18n.t("players.empty_ops") }}</p>
+        </div>
         <div v-for="p in ops" :key="p.name" class="player-item glass-card">
           <div class="player-avatar">
             <img :src="'https://mc-heads.net/avatar/' + p.name + '/32'" class="avatar-img" />
           </div>
           <div class="player-info">
             <span class="player-name">{{ p.name }}</span>
-            <span class="text-caption">{{ i18n.t('players.level') }}: {{ p.level }}</span>
+            <span class="text-caption">{{ i18n.t("players.level") }}: {{ p.level }}</span>
           </div>
           <SLBadge :text="i18n.t('players.ops')" variant="warning" />
           <div class="player-actions">
-            <SLButton variant="ghost" size="sm" :disabled="!isRunning" @click="handleRemoveOp(p.name)">{{ i18n.t('players.deop') }}</SLButton>
+            <SLButton
+              variant="ghost"
+              size="sm"
+              :disabled="!isRunning"
+              @click="handleRemoveOp(p.name)"
+              >{{ i18n.t("players.deop") }}</SLButton
+            >
           </div>
         </div>
       </div>
@@ -377,13 +445,32 @@ function getAddLabel(): string {
 
     <SLModal :visible="showAddModal" :title="getAddLabel()" @close="showAddModal = false">
       <div class="modal-form">
-        <SLInput :label="i18n.t('players.player_name')" :placeholder="i18n.t('players.player_id')" v-model="addPlayerName" />
-        <SLInput v-if="activeTab === 'banned'" :label="i18n.t('players.ban_reason')" :placeholder="i18n.t('players.ban_reason_placeholder')" v-model="addBanReason" />
-        <p v-if="!isRunning" class="text-error" style="font-size:0.8125rem">{{ i18n.t('players.server_not_running_hint') }}</p>
+        <SLInput
+          :label="i18n.t('players.player_name')"
+          :placeholder="i18n.t('players.player_id')"
+          v-model="addPlayerName"
+        />
+        <SLInput
+          v-if="activeTab === 'banned'"
+          :label="i18n.t('players.ban_reason')"
+          :placeholder="i18n.t('players.ban_reason_placeholder')"
+          v-model="addBanReason"
+        />
+        <p v-if="!isRunning" class="text-error" style="font-size: 0.8125rem">
+          {{ i18n.t("players.server_not_running_hint") }}
+        </p>
       </div>
       <template #footer>
-        <SLButton variant="secondary" @click="showAddModal = false">{{ i18n.t('players.cancel') }}</SLButton>
-        <SLButton variant="primary" :loading="addLoading" :disabled="!isRunning" @click="handleAdd">{{ i18n.t('players.confirm') }}</SLButton>
+        <SLButton variant="secondary" @click="showAddModal = false">{{
+          i18n.t("players.cancel")
+        }}</SLButton>
+        <SLButton
+          variant="primary"
+          :loading="addLoading"
+          :disabled="!isRunning"
+          @click="handleAdd"
+          >{{ i18n.t("players.confirm") }}</SLButton
+        >
       </template>
     </SLModal>
   </div>
