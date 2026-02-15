@@ -7,6 +7,7 @@ import SLInput from "../components/common/SLInput.vue";
 import SLSelect from "../components/common/SLSelect.vue";
 import SLBadge from "../components/common/SLBadge.vue";
 import SLModal from "../components/common/SLModal.vue";
+import SLSpinner from "../components/common/SLSpinner.vue";
 import { useServerStore } from "../stores/serverStore";
 import { useConsoleStore } from "../stores/consoleStore";
 import { playerApi, type PlayerEntry, type BanEntry, type OpEntry } from "../api/player";
@@ -326,7 +327,7 @@ function getAddLabel(): string {
       </div>
 
       <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
+        <SLSpinner />
         <span>加载中...</span>
       </div>
 
@@ -553,14 +554,6 @@ function getAddLabel(): string {
   gap: var(--sl-space-sm);
   padding: var(--sl-space-2xl);
   color: var(--sl-text-tertiary);
-}
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--sl-border);
-  border-top-color: var(--sl-primary);
-  border-radius: 50%;
-  animation: sl-spin 0.8s linear infinite;
 }
 .player-list {
   display: flex;

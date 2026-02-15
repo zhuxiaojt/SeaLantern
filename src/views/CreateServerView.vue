@@ -6,6 +6,7 @@ import SLButton from "../components/common/SLButton.vue";
 import SLInput from "../components/common/SLInput.vue";
 import SLSelect from "../components/common/SLSelect.vue";
 import SLSwitch from "../components/common/SLSwitch.vue";
+import SLSpinner from "../components/common/SLSpinner.vue";
 import { serverApi } from "../api/server";
 import { javaApi, type JavaInfo } from "../api/java";
 import { systemApi } from "../api/system";
@@ -159,7 +160,7 @@ const javaOptions = computed(() => {
 
     <SLCard title="Java 环境" subtitle="扫描系统中所有磁盘的 Java 安装">
       <div v-if="javaLoading" class="java-loading">
-        <div class="spinner"></div>
+        <SLSpinner />
         <span>正在扫描所有磁盘...</span>
       </div>
       <div v-else-if="javaList.length === 0" class="java-empty">
@@ -275,14 +276,6 @@ const javaOptions = computed(() => {
   gap: var(--sl-space-sm);
   padding: var(--sl-space-lg);
   color: var(--sl-text-tertiary);
-}
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--sl-border);
-  border-top-color: var(--sl-primary);
-  border-radius: 50%;
-  animation: sl-spin 0.8s linear infinite;
 }
 .java-empty {
   padding: var(--sl-space-lg);

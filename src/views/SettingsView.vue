@@ -6,6 +6,7 @@ import SLInput from "../components/common/SLInput.vue";
 import SLSwitch from "../components/common/SLSwitch.vue";
 import SLModal from "../components/common/SLModal.vue";
 import SLSelect from "../components/common/SLSelect.vue";
+import SLSpinner from "../components/common/SLSpinner.vue";
 import {
   settingsApi,
   checkAcrylicSupport,
@@ -350,7 +351,7 @@ function clearBackgroundImage() {
     </div>
 
     <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+      <SLSpinner />
       <span>加载设置...</span>
     </div>
 
@@ -780,14 +781,6 @@ function clearBackgroundImage() {
   padding: var(--sl-space-2xl);
   color: var(--sl-text-tertiary);
 }
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--sl-border);
-  border-top-color: var(--sl-primary);
-  border-radius: 50%;
-  animation: sl-spin 0.8s linear infinite;
-}
 
 .settings-group {
   display: flex;
@@ -932,13 +925,7 @@ function clearBackgroundImage() {
   border: 3px solid var(--sl-border);
   border-top-color: var(--sl-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  animation: sl-spin 1s linear infinite;
 }
 
 .bg-animated-badge {

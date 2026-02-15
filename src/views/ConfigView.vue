@@ -7,6 +7,7 @@ import SLInput from "../components/common/SLInput.vue";
 import SLSwitch from "../components/common/SLSwitch.vue";
 import SLSelect from "../components/common/SLSelect.vue";
 import SLBadge from "../components/common/SLBadge.vue";
+import SLSpinner from "../components/common/SLSpinner.vue";
 import { configApi, type ConfigEntry } from "../api/config";
 import { useServerStore } from "../stores/serverStore";
 
@@ -177,7 +178,7 @@ function getServerName(): string {
       </div>
 
       <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
+        <SLSpinner />
         <span>加载配置中...</span>
       </div>
 
@@ -324,14 +325,6 @@ function getServerName(): string {
   gap: var(--sl-space-sm);
   padding: var(--sl-space-2xl);
   color: var(--sl-text-tertiary);
-}
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--sl-border);
-  border-top-color: var(--sl-primary);
-  border-radius: 50%;
-  animation: sl-spin 0.8s linear infinite;
 }
 .config-entries {
   display: flex;

@@ -5,10 +5,12 @@ import SLCard from "../components/common/SLCard.vue";
 import SLButton from "../components/common/SLButton.vue";
 import SLBadge from "../components/common/SLBadge.vue";
 import SLProgress from "../components/common/SLProgress.vue";
+import SLSpinner from "../components/common/SLSpinner.vue";
 import { useServerStore } from "../stores/serverStore";
 import { useConsoleStore } from "../stores/consoleStore";
 import { serverApi } from "../api/server";
 import { systemApi, type SystemInfo } from "../api/system";
+import { getStatusVariant, getStatusText } from "../utils/serverStatus";
 
 const router = useRouter();
 const store = useServerStore();
@@ -96,35 +98,6 @@ onUnmounted(() => {
   if (statsTimer) clearInterval(statsTimer);
   if (refreshTimer) clearInterval(refreshTimer);
 });
-
-function getStatusVariant(status: string | undefined) {
-  switch (status) {
-    case "Running":
-      return "success" as const;
-    case "Starting":
-    case "Stopping":
-      return "warning" as const;
-    case "Error":
-      return "error" as const;
-    default:
-      return "neutral" as const;
-  }
-}
-
-function getStatusText(status: string | undefined): string {
-  switch (status) {
-    case "Running":
-      return "运行中";
-    case "Starting":
-      return "启动中";
-    case "Stopping":
-      return "停止中";
-    case "Error":
-      return "异常";
-    default:
-      return "已停止";
-  }
-}
 
 async function handleStart(id: string) {
   actionLoading.value[id] = true;
@@ -377,7 +350,7 @@ async function handleDelete(id: string) {
     </div>
 
     <div v-if="store.loading" class="loading-state">
-      <div class="spinner"></div>
+      <SLSpinner />
       <span>加载中...</span>
     </div>
 
@@ -592,15 +565,6 @@ async function handleDelete(id: string) {
   gap: var(--sl-space-sm);
   padding: var(--sl-space-2xl);
   color: var(--sl-text-tertiary);
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--sl-border);
-  border-top-color: var(--sl-primary);
-  border-radius: 50%;
-  animation: sl-spin 0.8s linear infinite;
 }
 
 .empty-state {
