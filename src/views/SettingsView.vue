@@ -39,6 +39,22 @@ const backgroundSizeOptions = [
   { label: "原始大小 (Auto)", value: "auto" },
 ];
 
+const colorOptions = [
+  { label: "默认", value: "default" },
+  { label: "Midnight", value: "midnight" },
+  { label: "Sunset", value: "sunset" },
+  { label: "Ocean", value: "ocean" },
+  { label: "Rose", value: "rose" },
+  { label: "自定义", value: "custom" },
+]
+
+const editColorOptions = [
+  { label: "浅色", value: "light" },
+  { label: "深色", value: "dark" },
+  { label: "浅色毛玻璃", value: "light_acrylic" },
+  { label: "深色毛玻璃", value: "dark_acrylic" },
+]
+
 const themeOptions = [
   { label: "跟随系统", value: "auto" },
   { label: "浅色", value: "light" },
@@ -53,6 +69,7 @@ const showImportModal = ref(false);
 const importJson = ref("");
 const showResetConfirm = ref(false);
 const bgSettingsExpanded = ref(false);
+const colorSettingsExpanded = ref(false);
 const bgPreviewLoaded = ref(false);
 const bgPreviewLoading = ref(false);
 
@@ -120,6 +137,7 @@ async function loadSettings() {
     bgBrightness.value = String(s.background_brightness);
     uiFontSize.value = String(s.font_size);
     hasChanges.value = false;
+    settings.value.color = s.color || "default";
     // 应用已保存的设置
     applyTheme(s.theme);
     applyFontSize(s.font_size);
@@ -218,6 +236,7 @@ async function saveSettings() {
   settings.value.background_blur = parseInt(bgBlur.value) || 0;
   settings.value.background_brightness = parseFloat(bgBrightness.value) || 1.0;
   settings.value.font_size = parseInt(uiFontSize.value) || 14;
+  settings.value.color = settings.value.color || "default";
 
   saving.value = true;
   error.value = null;
@@ -260,6 +279,7 @@ async function resetSettings() {
     uiFontSize.value = String(s.font_size);
     showResetConfirm.value = false;
     hasChanges.value = false;
+    settings.value.color = "default";
     success.value = "已恢复默认设置";
     setTimeout(() => (success.value = null), 3000);
     applyTheme(s.theme);

@@ -14,6 +14,7 @@ const backgroundBrightness = ref(1.0);
 const backgroundSize = ref("cover");
 const acrylicEnabled = ref(false);
 const acrylicSupported = ref(false);
+const currentColor = ref("default");
 const currentTheme = ref("auto");
 
 let systemThemeQuery: MediaQueryList | null = null;
@@ -94,6 +95,9 @@ onUnmounted(() => {
 async function loadBackgroundSettings() {
   try {
     const settings = await settingsApi.get();
+
+    // 应用颜色方案
+    currentColor.value = settings.color || "default";
 
     // 保存当前主题设置
     currentTheme.value = settings.theme || "auto";

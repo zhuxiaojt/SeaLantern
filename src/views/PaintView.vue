@@ -39,6 +39,23 @@ const backgroundSizeOptions = [
   { label: "原始大小 (Auto)", value: "auto" },
 ];
 
+const colorOptions = [
+  { label: "默认", value: "default" },
+  { label: "Midnight", value: "midnight" },
+  { label: "Forest", value: "forest" },
+  { label: "Sunset", value: "sunset" },
+  { label: "Ocean", value: "ocean" },
+  { label: "Rose", value: "rose" },
+  { label: "自定义", value: "custom" },
+];
+
+const editColorOptions = [
+  { label: "浅色", value: "light" },
+  { label: "深色", value: "dark" },
+  { label: "浅色毛玻璃", value: "light_acrylic" },
+  { label: "深色毛玻璃", value: "dark_acrylic" },
+];
+
 const themeOptions = [
   { label: "跟随系统", value: "auto" },
   { label: "浅色", value: "light" },
@@ -53,8 +70,515 @@ const showImportModal = ref(false);
 const importJson = ref("");
 const showResetConfirm = ref(false);
 const bgSettingsExpanded = ref(false);
+const colorSettingsExpanded = ref(false);
 const bgPreviewLoaded = ref(false);
 const bgPreviewLoading = ref(false);
+const editColorPlan = ref("light");
+
+// 颜色值计算属性，用于动态绑定不同主题的颜色
+const bgColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#f8fafc";
+          case 'dark': return "#0f1117";
+          case 'light_acrylic': return "rgba(248, 250, 252, 0.7)";
+          case 'dark_acrylic': return "rgba(15, 17, 23, 0.7)";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'bg');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.bg_color,
+      dark: settings.value.bg_dark,
+      light_acrylic: settings.value.bg_acrylic,
+      dark_acrylic: settings.value.bg_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#f8fafc";
+          case 'dark': return "#0f1117";
+          case 'light_acrylic': return "rgba(248, 250, 252, 0.7)";
+          case 'dark_acrylic': return "rgba(15, 17, 23, 0.7)";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'bg');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.bg_color = value; break;
+      case 'dark': settings.value.bg_dark = value; break;
+      case 'light_acrylic': settings.value.bg_acrylic = value; break;
+      case 'dark_acrylic': settings.value.bg_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const bgSecondaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#f1f5f9";
+          case 'dark': return "#1a1d28";
+          case 'light_acrylic': return "rgba(241, 245, 249, 0.6)";
+          case 'dark_acrylic': return "rgba(26, 29, 40, 0.6)";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'bgSecondary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.bg_secondary_color,
+      dark: settings.value.bg_secondary_dark,
+      light_acrylic: settings.value.bg_secondary_acrylic,
+      dark_acrylic: settings.value.bg_secondary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#f1f5f9";
+          case 'dark': return "#1a1d28";
+          case 'light_acrylic': return "rgba(241, 245, 249, 0.6)";
+          case 'dark_acrylic': return "rgba(26, 29, 40, 0.6)";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'bgSecondary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.bg_secondary_color = value; break;
+      case 'dark': settings.value.bg_secondary_dark = value; break;
+      case 'light_acrylic': settings.value.bg_secondary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.bg_secondary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const bgTertiaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#e2e8f0";
+          case 'dark': return "#242836";
+          case 'light_acrylic': return "rgba(226, 232, 240, 0.5)";
+          case 'dark_acrylic': return "rgba(36, 40, 54, 0.5)";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'bgTertiary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.bg_tertiary_color,
+      dark: settings.value.bg_tertiary_dark,
+      light_acrylic: settings.value.bg_tertiary_acrylic,
+      dark_acrylic: settings.value.bg_tertiary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#e2e8f0";
+          case 'dark': return "#242836";
+          case 'light_acrylic': return "rgba(226, 232, 240, 0.5)";
+          case 'dark_acrylic': return "rgba(36, 40, 54, 0.5)";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'bgTertiary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.bg_tertiary_color = value; break;
+      case 'dark': settings.value.bg_tertiary_dark = value; break;
+      case 'light_acrylic': settings.value.bg_tertiary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.bg_tertiary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const primaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#0ea5e9";
+          case 'dark': return "#60a5fa";
+          case 'light_acrylic': return "#0ea5e9";
+          case 'dark_acrylic': return "#60a5fa";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'primary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.primary_color,
+      dark: settings.value.primary_dark,
+      light_acrylic: settings.value.primary_acrylic,
+      dark_acrylic: settings.value.primary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#0ea5e9";
+          case 'dark': return "#60a5fa";
+          case 'light_acrylic': return "#0ea5e9";
+          case 'dark_acrylic': return "#60a5fa";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'primary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.primary_color = value; break;
+      case 'dark': settings.value.primary_dark = value; break;
+      case 'light_acrylic': settings.value.primary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.primary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const secondaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#06b6d4";
+          case 'dark': return "#22d3ee";
+          case 'light_acrylic': return "#06b6d4";
+          case 'dark_acrylic': return "#22d3ee";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'secondary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.secondary_color,
+      dark: settings.value.secondary_dark,
+      light_acrylic: settings.value.secondary_acrylic,
+      dark_acrylic: settings.value.secondary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#06b6d4";
+          case 'dark': return "#22d3ee";
+          case 'light_acrylic': return "#06b6d4";
+          case 'dark_acrylic': return "#22d3ee";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'secondary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.secondary_color = value; break;
+      case 'dark': settings.value.secondary_dark = value; break;
+      case 'light_acrylic': settings.value.secondary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.secondary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const textPrimaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#0f172a";
+          case 'dark': return "#e2e8f0";
+          case 'light_acrylic': return "#0f172a";
+          case 'dark_acrylic': return "#e2e8f0";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'textPrimary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.text_primary_color,
+      dark: settings.value.text_primary_dark,
+      light_acrylic: settings.value.text_primary_acrylic,
+      dark_acrylic: settings.value.text_primary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#0f172a";
+          case 'dark': return "#e2e8f0";
+          case 'light_acrylic': return "#0f172a";
+          case 'dark_acrylic': return "#e2e8f0";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'textPrimary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.text_primary_color = value; break;
+      case 'dark': settings.value.text_primary_dark = value; break;
+      case 'light_acrylic': settings.value.text_primary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.text_primary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const textSecondaryColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#475569";
+          case 'dark': return "#94a3b8";
+          case 'light_acrylic': return "#475569";
+          case 'dark_acrylic': return "#94a3b8";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'textSecondary');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.text_secondary_color,
+      dark: settings.value.text_secondary_dark,
+      light_acrylic: settings.value.text_secondary_acrylic,
+      dark_acrylic: settings.value.text_secondary_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#475569";
+          case 'dark': return "#94a3b8";
+          case 'light_acrylic': return "#475569";
+          case 'dark_acrylic': return "#94a3b8";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'textSecondary');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.text_secondary_color = value; break;
+      case 'dark': settings.value.text_secondary_dark = value; break;
+      case 'light_acrylic': settings.value.text_secondary_acrylic = value; break;
+      case 'dark_acrylic': settings.value.text_secondary_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
+
+const borderColor = computed({
+  get: () => {
+    if (!settings.value) return "";
+    // 如果不是自定义主题，返回预设颜色值
+    if (settings.value.color !== 'custom') {
+      // 如果是默认主题，返回默认颜色值
+      if (settings.value.color === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#e2e8f0";
+          case 'dark': return "rgba(255, 255, 255, 0.1)";
+          case 'light_acrylic': return "#e2e8f0";
+          case 'dark_acrylic': return "rgba(255, 255, 255, 0.1)";
+          default: return "";
+        }
+      }
+      // 其他预设主题，返回对应的预设颜色值
+      return getPresetColor(settings.value.color, editColorPlan.value, 'border');
+    }
+    // 自定义主题，返回设置中的颜色值，如果没有则使用当前预设的颜色值
+    const customColor = {
+      light: settings.value.border_color,
+      dark: settings.value.border_dark,
+      light_acrylic: settings.value.border_acrylic,
+      dark_acrylic: settings.value.border_dark_acrylic
+    }[editColorPlan.value];
+    
+    if (customColor) return customColor;
+    
+    // 如果没有自定义颜色，使用当前预设的颜色值
+    if (settings.value.color_prev) {
+      if (settings.value.color_prev === 'default') {
+        switch (editColorPlan.value) {
+          case 'light': return "#e2e8f0";
+          case 'dark': return "rgba(255, 255, 255, 0.1)";
+          case 'light_acrylic': return "#e2e8f0";
+          case 'dark_acrylic': return "rgba(255, 255, 255, 0.1)";
+          default: return "";
+        }
+      }
+      return getPresetColor(settings.value.color_prev, editColorPlan.value, 'border');
+    }
+    
+    // 默认返回空
+    return "";
+  },
+  set: (value) => {
+    if (!settings.value) return;
+    switch (editColorPlan.value) {
+      case 'light': settings.value.border_color = value; break;
+      case 'dark': settings.value.border_dark = value; break;
+      case 'light_acrylic': settings.value.border_acrylic = value; break;
+      case 'dark_acrylic': settings.value.border_dark_acrylic = value; break;
+    }
+    // 自动切换到自定义预设
+    if (settings.value.color !== 'custom') {
+      settings.value.color = 'custom';
+    }
+    markChanged();
+    // 应用颜色变化
+    applyColors();
+  }
+});
 
 const backgroundPreviewUrl = computed(() => {
   if (!settings.value?.background_image) return "";
@@ -80,6 +604,8 @@ onMounted(async () => {
   } catch {
     acrylicSupported.value = false;
   }
+  // 应用初始颜色
+  applyColors();
 });
 
 async function loadSystemFonts() {
@@ -104,6 +630,65 @@ watch(bgSettingsExpanded, (expanded) => {
   }
 });
 
+// 监控颜色值变化，自动切换到自定义预设
+watch(
+  () => [
+    settings.value?.bg_color,
+    settings.value?.bg_secondary_color,
+    settings.value?.bg_tertiary_color,
+    settings.value?.primary_color,
+    settings.value?.secondary_color,
+    settings.value?.text_primary_color,
+    settings.value?.text_secondary_color,
+    settings.value?.border_color,
+    settings.value?.bg_dark,
+    settings.value?.bg_secondary_dark,
+    settings.value?.bg_tertiary_dark,
+    settings.value?.primary_dark,
+    settings.value?.secondary_dark,
+    settings.value?.text_primary_dark,
+    settings.value?.text_secondary_dark,
+    settings.value?.border_dark,
+    settings.value?.bg_acrylic,
+    settings.value?.bg_secondary_acrylic,
+    settings.value?.bg_tertiary_acrylic,
+    settings.value?.primary_acrylic,
+    settings.value?.secondary_acrylic,
+    settings.value?.text_primary_acrylic,
+    settings.value?.text_secondary_acrylic,
+    settings.value?.border_acrylic,
+    settings.value?.bg_dark_acrylic,
+    settings.value?.bg_secondary_dark_acrylic,
+    settings.value?.bg_tertiary_dark_acrylic,
+    settings.value?.primary_dark_acrylic,
+    settings.value?.secondary_dark_acrylic,
+    settings.value?.text_primary_dark_acrylic,
+    settings.value?.text_secondary_dark_acrylic,
+    settings.value?.border_dark_acrylic
+  ],
+  (newValues, oldValues) => {
+    if (!settings.value) return;
+    
+    // 检查是否是初始化（oldValues 都是 undefined）
+    const isInitialization = oldValues.every(val => val === undefined);
+    if (isInitialization) return;
+    
+    // 检查是否有任何颜色值发生了变化
+    const hasColorChanged = newValues.some((newVal, index) => {
+      return newVal !== oldValues[index];
+    });
+    
+    // 如果颜色值发生了变化，且当前不是自定义预设，则切换到自定义
+    if (hasColorChanged && settings.value.color !== 'custom') {
+      // 保存当前主题作为之前的主题
+      settings.value.color_prev = settings.value.color;
+      settings.value.color = 'custom';
+      markChanged();
+    }
+  },
+  { deep: true }
+);
+
 async function loadSettings() {
   loading.value = true;
   error.value = null;
@@ -120,6 +705,7 @@ async function loadSettings() {
     bgBrightness.value = String(s.background_brightness);
     uiFontSize.value = String(s.font_size);
     hasChanges.value = false;
+    settings.value.color = s.color || "default";
     // 应用已保存的设置
     applyTheme(s.theme);
     applyFontSize(s.font_size);
@@ -168,6 +754,87 @@ function applyFontFamily(fontFamily: string) {
   }
 }
 
+function applyColors() {
+  if (!settings.value) return;
+  
+  // 确定当前的主题模式
+  const effectiveTheme = getEffectiveTheme(settings.value.theme);
+  const isDark = effectiveTheme === 'dark';
+  
+  // 确定当前是否启用了亚克力
+  const isAcrylic = settings.value.acrylic_enabled && acrylicSupported.value;
+  
+  // 根据实际情况确定当前的颜色方案
+  const actualPlan = isDark ? 
+    (isAcrylic ? 'dark_acrylic' : 'dark') : 
+    (isAcrylic ? 'light_acrylic' : 'light');
+  
+  // 保存当前的编辑方案
+  const originalPlan = editColorPlan.value;
+  
+  // 临时切换到实际的颜色方案
+  editColorPlan.value = actualPlan;
+  
+  // 获取当前的颜色值
+  const colors = {
+    bg: bgColor.value,
+    bgSecondary: bgSecondaryColor.value,
+    bgTertiary: bgTertiaryColor.value,
+    primary: primaryColor.value,
+    secondary: secondaryColor.value,
+    textPrimary: textPrimaryColor.value,
+    textSecondary: textSecondaryColor.value,
+    border: borderColor.value
+  };
+  
+  // 恢复原来的编辑方案
+  editColorPlan.value = originalPlan;
+  
+  // 应用颜色值到 CSS 变量
+  document.documentElement.style.setProperty('--sl-bg', colors.bg);
+  document.documentElement.style.setProperty('--sl-bg-secondary', colors.bgSecondary);
+  document.documentElement.style.setProperty('--sl-bg-tertiary', colors.bgTertiary);
+  document.documentElement.style.setProperty('--sl-primary', colors.primary);
+  document.documentElement.style.setProperty('--sl-accent', colors.secondary);
+  document.documentElement.style.setProperty('--sl-text-primary', colors.textPrimary);
+  document.documentElement.style.setProperty('--sl-text-secondary', colors.textSecondary);
+  document.documentElement.style.setProperty('--sl-border', colors.border);
+  document.documentElement.style.setProperty('--sl-border-light', colors.border);
+  
+  // 计算并应用其他相关变量
+  
+  // 表面颜色
+  const surfaceColor = isDark ? colors.bgSecondary : '#ffffff';
+  const surfaceHoverColor = isDark ? colors.bgTertiary : colors.bg;
+  document.documentElement.style.setProperty('--sl-surface', surfaceColor);
+  document.documentElement.style.setProperty('--sl-surface-hover', surfaceHoverColor);
+  
+  // 主要颜色变体
+  const primaryLight = isDark ? adjustBrightness(colors.primary, 30) : adjustBrightness(colors.primary, 20);
+  const primaryDark = isDark ? adjustBrightness(colors.primary, -20) : adjustBrightness(colors.primary, -30);
+  const primaryBg = isDark ? rgbaFromHex(colors.primary, 0.12) : rgbaFromHex(colors.primary, 0.08);
+  document.documentElement.style.setProperty('--sl-primary-light', primaryLight);
+  document.documentElement.style.setProperty('--sl-primary-dark', primaryDark);
+  document.documentElement.style.setProperty('--sl-primary-bg', primaryBg);
+  
+  // 强调色变体
+  const accentLight = adjustBrightness(colors.secondary, 20);
+  document.documentElement.style.setProperty('--sl-accent-light', accentLight);
+  
+  // 文本颜色变体
+  const textTertiary = isDark ? adjustBrightness(colors.textSecondary, -20) : adjustBrightness(colors.textSecondary, 20);
+  const textInverse = isDark ? colors.bg : colors.textPrimary;
+  document.documentElement.style.setProperty('--sl-text-tertiary', textTertiary);
+  document.documentElement.style.setProperty('--sl-text-inverse', textInverse);
+  
+  // 阴影
+  const shadowOpacity = isDark ? 0.4 : 0.06;
+  document.documentElement.style.setProperty('--sl-shadow-sm', `0 1px 2px rgba(0, 0, 0, ${shadowOpacity * 0.6})`);
+  document.documentElement.style.setProperty('--sl-shadow-md', `0 4px 12px rgba(0, 0, 0, ${shadowOpacity})`);
+  document.documentElement.style.setProperty('--sl-shadow-lg', `0 8px 24px rgba(0, 0, 0, ${shadowOpacity * 1.3})`);
+  document.documentElement.style.setProperty('--sl-shadow-xl', `0 16px 48px rgba(0, 0, 0, ${shadowOpacity * 1.6})`);
+}
+
 function handleFontFamilyChange() {
   markChanged();
   if (settings.value) {
@@ -192,6 +859,271 @@ async function handleAcrylicChange(enabled: boolean) {
   }
 }
 
+// 辅助函数：调整颜色亮度
+function adjustBrightness(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return '#' + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+}
+
+// 辅助函数：将十六进制颜色转换为 RGBA
+function rgbaFromHex(hex: string, alpha: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const R = (num >> 16) & 0xFF;
+  const G = (num >> 8) & 0xFF;
+  const B = num & 0xFF;
+  return `rgba(${R}, ${G}, ${B}, ${alpha})`;
+}
+
+// 预设主题颜色定义
+const presetThemes = {
+  midnight: {
+    light: {
+      bg: "#f0f4f8",
+      bgSecondary: "#e2e8f0",
+      bgTertiary: "#cbd5e1",
+      primary: "#3b82f6",
+      secondary: "#6366f1",
+      textPrimary: "#0f172a",
+      textSecondary: "#475569",
+      border: "#e2e8f0"
+    },
+    dark: {
+      bg: "#0f172a",
+      bgSecondary: "#1e293b",
+      bgTertiary: "#334155",
+      primary: "#60a5fa",
+      secondary: "#818cf8",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    },
+    lightAcrylic: {
+      bg: "rgba(240, 244, 248, 0.7)",
+      bgSecondary: "rgba(226, 232, 240, 0.6)",
+      bgTertiary: "rgba(203, 213, 225, 0.5)",
+      primary: "#3b82f6",
+      secondary: "#6366f1",
+      textPrimary: "#0f172a",
+      textSecondary: "#475569",
+      border: "#e2e8f0"
+    },
+    darkAcrylic: {
+      bg: "rgba(15, 23, 42, 0.7)",
+      bgSecondary: "rgba(30, 41, 59, 0.6)",
+      bgTertiary: "rgba(51, 65, 85, 0.5)",
+      primary: "#60a5fa",
+      secondary: "#818cf8",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    }
+  },
+  forest: {
+    light: {
+      bg: "#f0fdf4",
+      bgSecondary: "#dcfce7",
+      bgTertiary: "#bbf7d0",
+      primary: "#10b981",
+      secondary: "#059669",
+      textPrimary: "#064e3b",
+      textSecondary: "#15803d",
+      border: "#dcfce7"
+    },
+    dark: {
+      bg: "#064e3b",
+      bgSecondary: "#065f46",
+      bgTertiary: "#047857",
+      primary: "#34d399",
+      secondary: "#10b981",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    },
+    lightAcrylic: {
+      bg: "rgba(240, 253, 244, 0.7)",
+      bgSecondary: "rgba(220, 252, 231, 0.6)",
+      bgTertiary: "rgba(187, 247, 208, 0.5)",
+      primary: "#10b981",
+      secondary: "#059669",
+      textPrimary: "#064e3b",
+      textSecondary: "#15803d",
+      border: "#dcfce7"
+    },
+    darkAcrylic: {
+      bg: "rgba(6, 78, 59, 0.7)",
+      bgSecondary: "rgba(6, 95, 70, 0.6)",
+      bgTertiary: "rgba(4, 120, 87, 0.5)",
+      primary: "#34d399",
+      secondary: "#10b981",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    }
+  },
+  sunset: {
+    light: {
+      bg: "#fffbeb",
+      bgSecondary: "#fef3c7",
+      bgTertiary: "#fde68a",
+      primary: "#f97316",
+      secondary: "#ea580c",
+      textPrimary: "#7c2d12",
+      textSecondary: "#9a3412",
+      border: "#fef3c7"
+    },
+    dark: {
+      bg: "#7c2d12",
+      bgSecondary: "#9a3412",
+      bgTertiary: "#b45309",
+      primary: "#fb923c",
+      secondary: "#fdba74",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    },
+    lightAcrylic: {
+      bg: "rgba(255, 251, 235, 0.7)",
+      bgSecondary: "rgba(254, 243, 199, 0.6)",
+      bgTertiary: "rgba(253, 230, 138, 0.5)",
+      primary: "#f97316",
+      secondary: "#ea580c",
+      textPrimary: "#7c2d12",
+      textSecondary: "#9a3412",
+      border: "#fef3c7"
+    },
+    darkAcrylic: {
+      bg: "rgba(124, 45, 18, 0.7)",
+      bgSecondary: "rgba(154, 52, 18, 0.6)",
+      bgTertiary: "rgba(180, 83, 9, 0.5)",
+      primary: "#fb923c",
+      secondary: "#fdba74",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    }
+  },
+  ocean: {
+    light: {
+      bg: "#f0fdfa",
+      bgSecondary: "#ccfbf1",
+      bgTertiary: "#99f6e4",
+      primary: "#06b6d4",
+      secondary: "#0891b2",
+      textPrimary: "#0e7490",
+      textSecondary: "#155e75",
+      border: "#ccfbf1"
+    },
+    dark: {
+      bg: "#0e7490",
+      bgSecondary: "#0c4a6e",
+      bgTertiary: "#0891b2",
+      primary: "#22d3ee",
+      secondary: "#67e8f9",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    },
+    lightAcrylic: {
+      bg: "rgba(240, 253, 250, 0.7)",
+      bgSecondary: "rgba(204, 251, 241, 0.6)",
+      bgTertiary: "rgba(153, 246, 228, 0.5)",
+      primary: "#06b6d4",
+      secondary: "#0891b2",
+      textPrimary: "#0e7490",
+      textSecondary: "#155e75",
+      border: "#ccfbf1"
+    },
+    darkAcrylic: {
+      bg: "rgba(14, 116, 144, 0.7)",
+      bgSecondary: "rgba(12, 74, 110, 0.6)",
+      bgTertiary: "rgba(8, 145, 178, 0.5)",
+      primary: "#22d3ee",
+      secondary: "#67e8f9",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    }
+  },
+  rose: {
+    light: {
+      bg: "#fdf2f8",
+      bgSecondary: "#fce7f3",
+      bgTertiary: "#fbcfe8",
+      primary: "#ec4899",
+      secondary: "#db2777",
+      textPrimary: "#831843",
+      textSecondary: "#9f1239",
+      border: "#fce7f3"
+    },
+    dark: {
+      bg: "#831843",
+      bgSecondary: "#9f1239",
+      bgTertiary: "#be123c",
+      primary: "#f472b6",
+      secondary: "#f9a8d4",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    },
+    lightAcrylic: {
+      bg: "rgba(253, 242, 248, 0.7)",
+      bgSecondary: "rgba(252, 231, 243, 0.6)",
+      bgTertiary: "rgba(251, 207, 232, 0.5)",
+      primary: "#ec4899",
+      secondary: "#db2777",
+      textPrimary: "#831843",
+      textSecondary: "#9f1239",
+      border: "#fce7f3"
+    },
+    darkAcrylic: {
+      bg: "rgba(131, 24, 67, 0.7)",
+      bgSecondary: "rgba(159, 18, 57, 0.6)",
+      bgTertiary: "rgba(190, 18, 60, 0.5)",
+      primary: "#f472b6",
+      secondary: "#f9a8d4",
+      textPrimary: "#f1f5f9",
+      textSecondary: "#cbd5e1",
+      border: "rgba(255, 255, 255, 0.1)"
+    }
+  }
+};
+
+// 获取预设主题颜色
+function getPresetColor(preset, plan, colorType) {
+  if (!presetThemes[preset]) return "";
+  
+  let themeKey;
+  switch (plan) {
+    case 'light': themeKey = 'light'; break;
+    case 'dark': themeKey = 'dark'; break;
+    case 'light_acrylic': themeKey = 'lightAcrylic'; break;
+    case 'dark_acrylic': themeKey = 'darkAcrylic'; break;
+    default: return "";
+  }
+  
+  return presetThemes[preset][themeKey][colorType] || "";
+}
+
+// 监听颜色主题变化，保存之前的主题
+watch(
+  () => settings.value?.color,
+  (newColor, oldColor) => {
+    if (!settings.value) return;
+    
+    // 保存之前的主题，只有当旧主题不是自定义时才保存
+    if (oldColor && oldColor !== 'custom') {
+      settings.value.color_prev = oldColor;
+    }
+    
+    // 应用颜色变化
+    applyColors();
+  }
+);
+
 async function handleThemeChange() {
   markChanged();
   if (!settings.value) return;
@@ -204,6 +1136,9 @@ async function handleThemeChange() {
       await applyAcrylic(true, isDark);
     } catch {}
   }
+  
+  // 应用颜色变化
+  applyColors();
 }
 
 async function saveSettings() {
@@ -218,6 +1153,7 @@ async function saveSettings() {
   settings.value.background_blur = parseInt(bgBlur.value) || 0;
   settings.value.background_brightness = parseFloat(bgBrightness.value) || 1.0;
   settings.value.font_size = parseInt(uiFontSize.value) || 14;
+  settings.value.color = settings.value.color || "default";
 
   saving.value = true;
   error.value = null;
@@ -260,6 +1196,7 @@ async function resetSettings() {
     uiFontSize.value = String(s.font_size);
     showResetConfirm.value = false;
     hasChanges.value = false;
+    settings.value.color = "default";
     success.value = "已恢复默认设置";
     setTimeout(() => (success.value = null), 3000);
     applyTheme(s.theme);
@@ -346,6 +1283,157 @@ function clearBackgroundImage() {
     </div>
 
     <template v-else-if="settings">
+      <SLCard title="颜色主题" subtitle="自定义软件颜色主题">
+        <div class="settings-group">
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-label">使用预设</span>
+              <span class="setting-desc">选择预设的颜色主题，或自定义颜色</span>
+            </div>
+            <div class="input-lg">
+              <SLSelect
+                v-model="settings.color"
+                :options="colorOptions"
+                @update:modelValue="handleThemeChange"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="collapsible-section">
+          <div class="collapsible-header" @click="colorSettingsExpanded = !colorSettingsExpanded">
+            <div class="setting-info">
+              <span class="setting-label">颜色编辑</span>
+              <span class="setting-desc">设置自定义的颜色值</span>
+            </div>
+            <div class="collapsible-toggle" :class="{ expanded: colorSettingsExpanded }">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+          <Transition name="collapse">
+              <div v-show="colorSettingsExpanded" class="collapsible-content">
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">当前编辑方案</span>
+                    <span class="setting-desc">选择当前编辑的颜色方案</span>
+                  </div>
+                  <div class="input-lg">
+                    <SLSelect
+                      v-model="editColorPlan"
+                      :options="editColorOptions"
+                      @update:modelValue="applyColors"
+                    />
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">主背景色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="bgColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: bgColor }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">次背景色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="bgSecondaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: bgSecondaryColor }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">第三背景色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="bgTertiaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: bgTertiaryColor }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">主强调色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="primaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: primaryColor }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">次强调色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="secondaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: secondaryColor }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">主文字色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="textPrimaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: textPrimaryColor, border: '1px solid #e2e8f0' }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">次文字色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="textSecondaryColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: textSecondaryColor, border: '1px solid #e2e8f0' }"></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-label">边框颜色</span>
+                  </div>
+                  <div class="input-lg color-input-container">
+                    <SLInput
+                      v-model="borderColor"
+                      type="text"
+                      placeholder="颜色值"
+                    />
+                    <div class="color-preview" :style="{ backgroundColor: borderColor, border: '1px solid #e2e8f0' }"></div>
+                  </div>
+                </div>
+              </div>
+          </Transition>
+        </div>
+      </SLCard>
       <!-- Appearance -->
       <SLCard title="外观" subtitle="自定义软件背景和视觉效果">
         <div class="settings-group">
@@ -610,6 +1698,21 @@ function clearBackgroundImage() {
 
 .input-sm { width: 120px; flex-shrink: 0; }
 .input-lg { width: 320px; flex-shrink: 0; }
+
+.color-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sl-radius-md);
+  border: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
 
 .jvm-textarea, .import-textarea {
   width: 100%; margin-top: var(--sl-space-sm);
