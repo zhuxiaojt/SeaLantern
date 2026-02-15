@@ -85,6 +85,12 @@ export const contributors: Contributor[] = [
     url: "https://github.com/zhu1h1t1",
   },
   {
+    name: "CmzYa",
+    role: "适人握持",
+    avatar: "https://mc-heads.net/avatar/CmzYa/64",
+    url: "https://github.com/CmzYa",
+  },
+  {
     name: "ieshishinjin",
     role: "新增了功能，并吃了明太鱼干",
     avatar: "https://minotar.net/avatar/ieshishinjin/64",
@@ -102,11 +108,17 @@ export const contributors: Contributor[] = [
     avatar: "https://minotar.net/helm/f04be4dcd0ca49af89faf61068ec34e2/64",
     url: "https://github.com/maobuben",
   },
-  {
+    {
     name: "橙子冰棒",
     role: "修复Java查找算法",
     avatar: "https://blog.orllow.cn/images/author.webp",
     url: "https://github.com/Orange-Icepop",
+  },
+  {
+    name: "xingwangzhe",
+    role: "贡献者",
+    avatar: "https://mc-heads.net/avatar/xingwangzhe_/64",
+    url: "https://github.com/xingwangzhe",
   },
   // ============================================
   // 在这里添加更多贡献者！
