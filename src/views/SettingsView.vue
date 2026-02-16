@@ -881,7 +881,7 @@ function clearBackgroundImage() {
 
 .collapse-enter-active,
 .collapse-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 

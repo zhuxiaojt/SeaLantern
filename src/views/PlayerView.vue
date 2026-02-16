@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import SLCard from "../components/common/SLCard.vue";
 import SLButton from "../components/common/SLButton.vue";
 import SLInput from "../components/common/SLInput.vue";
-import SLSelect from "../components/common/SLSelect.vue";
 import SLBadge from "../components/common/SLBadge.vue";
 import SLModal from "../components/common/SLModal.vue";
 import SLSpinner from "../components/common/SLSpinner.vue";
@@ -20,8 +19,8 @@ const route = useRoute();
 const store = useServerStore();
 const consoleStore = useConsoleStore();
 
-const selectedServerId = ref("");
-const activeTab = ref<"online" | "whitelist" | "banned" | "ops">("online");
+const activeTab = ref<"online" | "whitelist" | "banned" | "ops">('online');
+const tabIndicator = ref<HTMLElement | null>(null);
 
 const whitelist = ref<PlayerEntry[]>([]);
 const bannedPlayers = ref<BanEntry[]>([]);
@@ -39,25 +38,30 @@ const addLoading = ref(false);
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
-const serverOptions = computed(() => store.servers.map((s) => ({ label: s.name, value: s.id })));
-
 const serverPath = computed(() => {
-  const server = store.servers.find((s) => s.id === selectedServerId.value);
+  const server = store.servers.find((s) => s.id === store.currentServerId);
   return server?.path || "";
 });
 
 const isRunning = computed(() => {
-  return store.statuses[selectedServerId.value]?.status === "Running";
+  return store.statuses[store.currentServerId]?.status === "Running";
 });
+
+const currentServerId = computed(() => store.currentServerId);
 
 onMounted(async () => {
   await store.refreshList();
   const routeId = route.params.id as string;
-  if (routeId) selectedServerId.value = routeId;
-  else if (store.currentServerId) selectedServerId.value = store.currentServerId;
-  else if (store.servers.length > 0) selectedServerId.value = store.servers[0].id;
+  if (routeId) store.setCurrentServer(routeId);
+  else if (!store.currentServerId && store.servers.length > 0)
+    store.setCurrentServer(store.servers[0].id);
 
   startRefresh();
+  if (store.currentServerId) {
+    await store.refreshStatus(store.currentServerId);
+    await loadAll();
+    parseOnlinePlayers();
+  }
 });
 
 onUnmounted(() => {
@@ -67,21 +71,24 @@ onUnmounted(() => {
 function startRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(async () => {
-    if (selectedServerId.value) {
-      await store.refreshStatus(selectedServerId.value);
+    if (store.currentServerId) {
+      await store.refreshStatus(store.currentServerId);
       await loadAll();
       parseOnlinePlayers();
     }
   }, 5000);
 }
 
-watch(selectedServerId, async () => {
-  if (selectedServerId.value) {
-    await store.refreshStatus(selectedServerId.value);
-    await loadAll();
-    parseOnlinePlayers();
-  }
-});
+watch(
+  () => store.currentServerId,
+  async () => {
+    if (store.currentServerId) {
+      await store.refreshStatus(store.currentServerId);
+      await loadAll();
+      parseOnlinePlayers();
+    }
+  },
+);
 
 async function loadAll() {
   if (!serverPath.value) return;
@@ -99,32 +106,35 @@ async function loadAll() {
 }
 
 function parseOnlinePlayers() {
-  const sid = selectedServerId.value;
+  const sid = store.currentServerId;
   const logs = consoleStore.logs[sid] || [];
-  const players: string[] = [];
+  const players = new Set<string>();
 
-  for (let i = logs.length - 1; i >= 0; i--) {
-    const line = logs[i];
+  for (const line of logs) {
     const joinMatch = line.match(/\]: (\w+) joined the game/);
-    const loginMatch = line.match(/\]: UUID of player (\w+) is/);
     const leftMatch = line.match(/\]: (\w+) left the game/);
+    const lostConnectionMatch = line.match(/\]: (\w+)(?: \([^)]+\))? lost connection:/);
+    const disconnectingMatch = line.match(/\]: Disconnecting (\w+)(?: \([^)]+\))?:/);
 
     if (joinMatch) {
       const name = joinMatch[1];
-      if (!players.includes(name)) players.push(name);
-    }
-    if (loginMatch) {
-      const name = loginMatch[1];
-      if (!players.includes(name)) players.push(name);
+      players.add(name);
     }
     if (leftMatch) {
       const name = leftMatch[1];
-      const idx = players.indexOf(name);
-      if (idx > -1) players.splice(idx, 1);
+      players.delete(name);
+    }
+    if (lostConnectionMatch) {
+      const name = lostConnectionMatch[1];
+      players.delete(name);
+    }
+    if (disconnectingMatch) {
+      const name = disconnectingMatch[1];
+      players.delete(name);
     }
   }
 
-  onlinePlayers.value = players;
+  onlinePlayers.value = Array.from(players);
 }
 
 function openAddModal() {
@@ -149,7 +159,7 @@ async function handleAdd() {
   addLoading.value = true;
   error.value = null;
   try {
-    const sid = selectedServerId.value;
+    const sid = store.currentServerId;
     switch (activeTab.value) {
       case "whitelist":
         await playerApi.addToWhitelist(sid, addPlayerName.value);
@@ -182,7 +192,7 @@ async function handleRemoveWhitelist(name: string) {
     return;
   }
   try {
-    await playerApi.removeFromWhitelist(selectedServerId.value, name);
+    await playerApi.removeFromWhitelist(store.currentServerId, name);
     success.value = MESSAGES.SUCCESS.WHITELIST_REMOVED;
     setTimeout(() => {
       success.value = null;
@@ -199,7 +209,7 @@ async function handleUnban(name: string) {
     return;
   }
   try {
-    await playerApi.unbanPlayer(selectedServerId.value, name);
+    await playerApi.unbanPlayer(store.currentServerId, name);
     success.value = MESSAGES.SUCCESS.PLAYER_UNBANNED;
     setTimeout(() => {
       success.value = null;
@@ -216,7 +226,7 @@ async function handleRemoveOp(name: string) {
     return;
   }
   try {
-    await playerApi.removeOp(selectedServerId.value, name);
+    await playerApi.removeOp(store.currentServerId, name);
     success.value = MESSAGES.SUCCESS.OP_REMOVED;
     setTimeout(() => {
       success.value = null;
@@ -233,7 +243,7 @@ async function handleKick(name: string) {
     return;
   }
   try {
-    await playerApi.kickPlayer(selectedServerId.value, name);
+    await playerApi.kickPlayer(store.currentServerId, name);
     success.value = `${name} ${MESSAGES.SUCCESS.PLAYER_KICKED}`;
     setTimeout(() => {
       success.value = null;
@@ -256,20 +266,43 @@ function getAddLabel(): string {
       return i18n.t("players.add");
   }
 }
+
+// 选择标签并更新指示器位置
+function selectTab(tab: "online" | "whitelist" | "banned" | "ops") {
+  activeTab.value = tab;
+  updateTabIndicator();
+}
+
+// 更新标签指示器位置
+function updateTabIndicator() {
+  setTimeout(() => {
+    if (!tabIndicator.value) return;
+    
+    const activeTabBtn = document.querySelector('.tab-btn.active');
+    if (activeTabBtn) {
+      const { offsetLeft, offsetWidth } = activeTabBtn as HTMLElement;
+      tabIndicator.value.style.left = `${offsetLeft}px`;
+      tabIndicator.value.style.width = `${offsetWidth}px`;
+    }
+  }, 100); // 添加延迟，确保DOM已完全渲染
+}
+
+// 监听标签变化，更新指示器位置
+watch(activeTab, () => {
+  updateTabIndicator();
+});
+
+// 组件挂载后初始化指示器位置
+onMounted(() => {
+  // 原有代码...
+  updateTabIndicator();
+});
 </script>
 
 <template>
   <div class="player-view animate-fade-in-up">
     <div class="player-header">
-      <div class="server-picker">
-        <SLSelect
-          :label="i18n.t('common.player_manage')"
-          :options="serverOptions"
-          v-model="selectedServerId"
-          :placeholder="i18n.t('players.select_server')"
-        />
-      </div>
-      <div v-if="selectedServerId" class="server-status">
+      <div v-if="currentServerId" class="server-status">
         <SLBadge
           :text="isRunning ? i18n.t('home.running') : i18n.t('home.stopped')"
           :variant="isRunning ? 'success' : 'neutral'"
@@ -280,7 +313,7 @@ function getAddLabel(): string {
       </div>
     </div>
 
-    <div v-if="!selectedServerId" class="empty-state">
+    <div v-if="!currentServerId" class="empty-state">
       <p class="text-body">{{ i18n.t("players.no_server") }}</p>
     </div>
 
@@ -294,10 +327,11 @@ function getAddLabel(): string {
       </div>
 
       <div class="tab-bar">
+        <div class="tab-indicator" ref="tabIndicator"></div>
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'online' }"
-          @click="activeTab = 'online'"
+          @click="selectTab('online')"
         >
           {{ i18n.t("players.online_players") }}
           <span class="tab-count">{{ onlinePlayers.length }}</span>
@@ -305,18 +339,18 @@ function getAddLabel(): string {
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'whitelist' }"
-          @click="activeTab = 'whitelist'"
+          @click="selectTab('whitelist')"
         >
           {{ i18n.t("players.whitelist") }} <span class="tab-count">{{ whitelist.length }}</span>
         </button>
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'banned' }"
-          @click="activeTab = 'banned'"
+          @click="selectTab('banned')"
         >
           {{ i18n.t("players.banned") }} <span class="tab-count">{{ bannedPlayers.length }}</span>
         </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'ops' }" @click="activeTab = 'ops'">
+        <button class="tab-btn" :class="{ active: activeTab === 'ops' }" @click="selectTab('ops')">
           {{ i18n.t("players.ops") }} <span class="tab-count">{{ ops.length }}</span>
         </button>
       </div>
@@ -534,6 +568,18 @@ function getAddLabel(): string {
   border-radius: var(--sl-radius-md);
   padding: 3px;
   width: fit-content;
+  position: relative;
+  overflow: hidden;
+}
+.tab-indicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: var(--sl-radius-sm);
+  transition: all 0.3s ease;
+  box-shadow: var(--sl-shadow-sm);
+  z-index: 1;
 }
 .tab-btn {
   display: flex;
@@ -545,11 +591,11 @@ function getAddLabel(): string {
   font-weight: 500;
   color: var(--sl-text-secondary);
   transition: all var(--sl-transition-fast);
+  position: relative;
+  z-index: 2;
 }
 .tab-btn.active {
-  background: var(--sl-surface);
   color: var(--sl-primary);
-  box-shadow: var(--sl-shadow-sm);
 }
 .tab-count {
   min-width: 20px;
