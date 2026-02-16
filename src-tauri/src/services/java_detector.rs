@@ -180,7 +180,7 @@ fn check_java(path: &str) -> Option<JavaInfo> {
     } else {
         canonicalize_path(path)?
     };
-    
+
     Some(JavaInfo {
         path: resolved,
         version,
