@@ -1341,7 +1341,6 @@ async function handleThemeChange() {
       await applyAcrylic(true, isDark);
     } catch {}
   }
-
   // 应用颜色变化
   applyColors();
 }
