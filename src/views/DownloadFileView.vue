@@ -80,15 +80,15 @@ async function handleDownload() {
 
   const threadCountValue = threadCount.value;
   if (threadCountValue == "") {
-    showError("线程数不能为空");
+    showError(i18n.t("download-file.thread_count_empty"));
     return;
   }
   if (!/^-?\d+$/.test(threadCountValue)) {
-    showError("字符不合法");
+    showError(i18n.t("download-file.thread_count_invalid"));
     return;
   }
   if (!/^[1-9]\d*$/.test(threadCountValue)) {
-    showError("线程数必须是一个正整数");
+    showError(i18n.t("download-file.thread_count_positive"));
     return;
   }
   const threadCountInt = parseInt(threadCountValue, 10);
@@ -138,7 +138,7 @@ watch(taskError, (newError) => {
           :disabled="isDownloading"
         >
           <template #suffix>
-            <button class="pick-btn" @click="pickFloder" :disabled="isDownloading">
+            <button class="sl-input-action" @click="pickFloder" :disabled="isDownloading">
               {{ i18n.t("download-file.browse") }}
             </button>
           </template>
@@ -209,7 +209,7 @@ watch(taskError, (newError) => {
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: var(--sl-radius-md);
   color: var(--sl-error);
-  font-size: 0.875rem;
+  font-size: var(--sl-font-size-base);
 }
 .error-close {
   color: var(--sl-error);
@@ -222,27 +222,6 @@ watch(taskError, (newError) => {
   display: flex;
   flex-direction: column;
   gap: var(--sl-space-md);
-}
-.pick-btn {
-  padding: 4px 12px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--sl-primary);
-  background: var(--sl-primary-bg);
-  border-radius: var(--sl-radius-sm);
-  cursor: pointer;
-  white-space: nowrap;
-  border: none;
-  transition: all var(--sl-transition-fast);
-}
-.pick-btn:hover {
-  background: var(--sl-primary);
-  color: white;
-}
-.pick-btn:disabled {
-  filter: grayscale(1);
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 .create-actions {
   display: flex;
@@ -284,7 +263,7 @@ watch(taskError, (newError) => {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  font-size: 0.75rem;
+  font-size: var(--sl-font-size-xs);
   color: var(--sl-text-secondary);
   font-family: var(--sl-font-mono, monospace), serif;
 }
