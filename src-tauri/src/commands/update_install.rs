@@ -16,7 +16,7 @@ pub static INSTALL_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 #[allow(dead_code)]
 pub fn get_update_cache_dir() -> PathBuf {
     let cache_dir = dirs_next::cache_dir().unwrap_or_else(std::env::temp_dir);
-    cache_dir.join("com.fpsz.sea-lantern").join("updates")
+    cache_dir.join("com.fpsz.sea-lantern-tiny").join("updates")
 }
 
 /// 获取待更新文件路径

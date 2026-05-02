@@ -8,11 +8,9 @@ pub mod java;
 pub mod logging;
 pub mod mcs_plugin;
 pub mod player;
-pub mod plugin;
 pub mod server;
 pub mod settings;
 pub mod system;
-pub mod tunnel;
 pub mod update;
 
 // 更新功能子模块
