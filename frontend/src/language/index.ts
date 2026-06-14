@@ -1,6 +1,14 @@
 import { ref, type Ref } from "vue";
 import enUS from "./en-US.json";
+import zhTW from "./zh-TW.json";
 import zhCN from "./zh-CN.json";
+import jaJP from "./ja-JP.json";
+import deDE from "./de-DE.json";
+import esES from "./es-ES.json";
+import frFA from "./fr-FA.json";
+import koKR from "./ko-KR.json";
+import ruRu from "./ru-RU.json";
+import viVN from "./vi-VN.json";
 
 type TranslationNode = {
   [key: string]: string | TranslationNode;
@@ -16,7 +24,15 @@ type LocaleModule = { default: LanguageFile };
 const localeLoaders = import.meta.glob<LocaleModule>("./*.json");
 const translations: Record<string, LanguageFile> = {
   "zh-CN": zhCN as LanguageFile,
+  "zh-TW": zhTW as LanguageFile,
   "en-US": enUS as LanguageFile,
+  "ja-JP": jaJP as LanguageFile,
+  "de-DE": deDE as LanguageFile,
+  "es-ES": esES as LanguageFile,
+  "fr-FA": frFA as LanguageFile,
+  "ko-KR": koKR as LanguageFile,
+  "ru-RU": ruRu as LanguageFile,
+  "vi-VN": viVN as LanguageFile,
 };
 const supportedLocales: string[] = Object.keys(localeLoaders)
   .map((path) => path.match(/\.\/(.*)\.json$/)?.[1])
