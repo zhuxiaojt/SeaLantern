@@ -31,6 +31,7 @@ plugins-demo/
 
 #docker test
 data/
+!frontend/src/data/
 CLAUDE.md
 
 # smoke test
